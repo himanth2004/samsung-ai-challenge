@@ -689,7 +689,7 @@ function goToDashboard() {
             const payload = { behavior: behaviorFeatures };
 
             try {
-                const response = await fetch('https://himanth2004.github.io/samsung-ai-challenge/predict', {
+                const response = await fetch('https://github.com/himanth2004/samsung-ai-challenge/tree/main/src/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
@@ -731,7 +731,7 @@ function goToDashboard() {
             logEvent('Sending typing data for analysis...', 'info');
 
             try {
-                const response = await fetch('https://himanth2004.github.io/samsung-ai-challenge/predict_typing', {
+                const response = await fetch('https://github.com/himanth2004/samsung-ai-challenge/tree/main/src/predict_typing', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text }),
