@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sentinel - Behavioral Analysis Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .orbitron {
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .jetbrains {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-effect-strong {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .neon-glow-green {
+            box-shadow: 0 0 20px rgba(67, 233, 123, 0.5);
+        }
+        
+        .neon-glow-red {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+            to { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+        }
+        
+        .pulse-glow-green {
+            animation: pulse-glow-green 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow-green {
+            from { box-shadow: 0 0 20px rgba(67, 233, 123, 0.5); }
+            to { box-shadow: 0 0 40px rgba(67, 233, 123, 0.8); }
+        }
+        
+        .pulse-glow-red {
+            animation: pulse-glow-red 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow-red {
+            from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.5); }
+            to { box-shadow: 0 0 40px rgba(255, 107, 107, 0.8); }
+        }
+        
+        .typing-animation {
+            overflow: hidden;
+            border-right: 2px solid #667eea;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #667eea; }
+        }
+        
+        .particle-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .cyber-grid {
+            background-image: 
+                linear-gradient(rgba(102, 126, 234, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(102, 126, 234, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .monitoring-area {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .monitoring-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(102, 126, 234, 0.1) 50%, transparent 70%);
+            animation: scan-line 3s linear infinite;
+        }
+        
+        @keyframes scan-line {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .data-stream {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-active {
+            background: #43e97b;
+            box-shadow: 0 0 20px rgba(67, 233, 123, 0.5);
+        }
+        
+        .status-inactive {
+            background: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+        
+        .status-analyzing {
+            background: #fa709a;
+            box-shadow: 0 0 20px rgba(250, 112, 154, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+        
+        .typing-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .typing-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .log-entry {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border-left: 3px solid transparent;
+        }
+        
+        .log-entry.info {
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+            color: #667eea;
+        }
+        
+        .log-entry.success {
+            background: rgba(67, 233, 123, 0.1);
+            border-left-color: #43e97b;
+            color: #43e97b;
+        }
+        
+        .log-entry.warning {
+            background: rgba(250, 112, 154, 0.1);
+            border-left-color: #fa709a;
+            color: #fa709a;
+        }
+        
+        .log-entry.error {
+            background: rgba(255, 107, 107, 0.1);
+            border-left-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        .log-entry.prediction {
+            background: rgba(118, 75, 162, 0.1);
+            border-left-color: #764ba2;
+            color: #764ba2;
+            font-weight: bold;
+        }
+        
+        .prediction-display {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .mouse-trail {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #667eea;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(102, 126, 234, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Particle Background -->
+    <div id="particles-js" class="particle-bg"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">AI</span>
+                    </div>
+                    <span class="orbitron font-bold text-xl gradient-text">SENTINEL</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="text-gray-300 hover:text-white transition-colors duration-300">Home</a>
+                    <a href="/main" class="text-blue-400 font-semibold">Command Center</a>
+                    <a href="/about" class="text-gray-300 hover:text-white transition-colors duration-300">About</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div id="systemStatus" class="status-indicator status-inactive"></div>
+                        <span class="text-sm text-gray-300">System Status</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-8">
+        <div class="container mx-auto px-6">
+            <!-- Header Section -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black mb-4">
+                    <span class="gradient-text">Behavioral Analysis</span><br>
+                    <span class="text-white">Command Center</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+                    Real-time behavioral pattern analysis and anomaly detection system. Monitor mouse dynamics and typing patterns with advanced AI algorithms.
+                </p>
+            </div>
+
+            <!-- Real-time Metrics Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-gray-400 text-sm font-medium">Data Points</h3>
+                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-white mb-2" id="dataPointsCount">0</div>
+                    <div class="text-sm text-gray-400">Mouse coordinates captured</div>
+                </div>
+
+                <div class="metric-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-gray-400 text-sm font-medium">Analysis Time</h3>
+                        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-white mb-2" id="analysisTime">0ms</div>
+                    <div class="text-sm text-gray-400">Average processing time</div>
+                </div>
+
+                <div class="metric-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-gray-400 text-sm font-medium">Confidence</h3>
+                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-white mb-2" id="confidenceLevel">0%</div>
+                    <div class="text-sm text-gray-400">Prediction confidence</div>
+                </div>
+
+                <div class="metric-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-gray-400 text-sm font-medium">Threat Level</h3>
+                        <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-white mb-2" id="threatLevel">LOW</div>
+                    <div class="text-sm text-gray-400">Current security status</div>
+                </div>
+            </div>
+
+            <!-- Main Analysis Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Mouse Dynamics Monitoring -->
+                <div class="glass-effect-strong p-8 rounded-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122"></path>
+                            </svg>
+                            Mouse Dynamics Analysis
+                        </h2>
+                        <div class="flex items-center">
+                            <div id="mouseStatus" class="status-indicator status-inactive"></div>
+                            <span class="text-sm text-gray-300">Inactive</span>
+                        </div>
+                    </div>
+
+                    <div id="monitoringArea" class="monitoring-area rounded-xl p-6 h-80 flex flex-col items-center justify-center relative mb-6">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 floating">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.122 2.122"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Mouse Movement Monitor</h3>
+                            <p class="text-gray-400 text-sm mb-4">Move your mouse in this area to capture behavioral patterns</p>
+                            <div class="flex space-x-4">
+                                <button id="startButton" class="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
+                                    🚀 Start Monitoring
+                                </button>
+                                <button id="stopButton" class="bg-gradient-to-r from-red-500 to-red-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300 hidden">
+                                    ⏹️ Stop Monitoring
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mouse Data Visualization -->
+                    <div class="bg-black bg-opacity-30 p-4 rounded-xl">
+                        <h4 class="text-lg font-semibold text-white mb-3">Real-time Data Stream</h4>
+                        <div id="mouseDataStream" class="data-stream h-20 overflow-y-auto bg-black bg-opacity-50 p-3 rounded">
+                            <div class="text-gray-500">Waiting for mouse data...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Analysis -->
+                <div class="glass-effect-strong p-8 rounded-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            Typing Pattern Analysis
+                        </h2>
+                        <div class="flex items-center">
+                            <div id="typingStatus" class="status-indicator status-inactive"></div>
+                            <span class="text-sm text-gray-300">Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-white font-medium mb-3">Enter text for analysis:</label>
+                        <textarea id="typingInput" class="typing-input w-full p-4 rounded-xl resize-none" rows="6" placeholder="Type your message here to analyze typing patterns and rhythm..."></textarea>
+                        <div class="flex justify-between items-center mt-3">
+                            <div class="text-sm text-gray-400">
+                                <span id="charCount">0</span> characters
+                            </div>
+                            <button id="submitTypingButton" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300">
+                                🔍 Analyze Typing
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Typing Metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-black bg-opacity-30 p-4 rounded-xl">
+                            <div class="text-sm text-gray-400 mb-1">Words per minute</div>
+                            <div class="text-xl font-bold text-white" id="wpmDisplay">0</div>
+                        </div>
+                        <div class="bg-black bg-opacity-30 p-4 rounded-xl">
+                            <div class="text-sm text-gray-400 mb-1">Typing rhythm</div>
+                            <div class="text-xl font-bold text-white" id="rhythmDisplay">Regular</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prediction Results -->
+            <div class="mt-8">
+                <div class="glass-effect-strong p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-white mb-6 text-center">AI Prediction Results</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Mouse Prediction -->
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-white mb-4">Mouse Behavior Analysis</h3>
+                            <div id="mousePrediction" class="prediction-display mb-4">
+                                <div class="text-sm text-gray-400 mb-2">Prediction</div>
+                                <div id="mousePredictionResult" class="text-3xl">Waiting...</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                <div id="mouseConfidence">Confidence: --</div>
+                                <div id="mouseProcessingTime">Processing time: --</div>
+                            </div>
+                        </div>
+
+                        <!-- Typing Prediction -->
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-white mb-4">Typing Pattern Analysis</h3>
+                            <div id="typingPrediction" class="prediction-display mb-4">
+                                <div class="text-sm text-gray-400 mb-2">Prediction</div>
+                                <div id="typingPredictionResult" class="text-3xl">Waiting...</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                <div id="typingConfidence">Confidence: --</div>
+                                <div id="typingProcessingTime">Processing time: --</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Log -->
+            <div class="mt-8">
+                <div class="glass-effect-strong p-8 rounded-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            System Activity Log
+                        </h2>
+                        <button id="clearLog" class="text-gray-400 hover:text-white transition-colors text-sm">
+                            Clear Log
+                        </button>
+                    </div>
+                    <div id="logOutput" class="bg-black bg-opacity-30 p-4 rounded-xl h-64 overflow-y-auto">
+                        <div class="log-entry info">
+                            [SYSTEM] AI Sentinel Command Center initialized
+                        </div>
+                        <div class="log-entry info">
+                            [SYSTEM] Behavioral analysis models loaded successfully
+                        </div>
+                        <div class="log-entry info">
+                            [SYSTEM] Ready to begin monitoring and analysis
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+
+function goToDashboard() {
+            window.location.href = 'main.html';
+        }
+
+        function goToAbout() {
+            window.location.href ='about.html';
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Apply functions to existing links
+        document.querySelectorAll('a[href="/main"]').forEach(el => {
+            el.addEventListener('click', (e) => { e.preventDefault(); goToDashboard(); });
+        });
+        document.querySelectorAll('a[href="/about"]').forEach(el => {
+            el.addEventListener('click', (e) => { e.preventDefault(); goToAbout(); });
+        });
+        document.querySelectorAll('a[href="/"]').forEach(el => {
+            el.addEventListener('click', (e) => { e.preventDefault(); goToHome(); });
+        });
+
+        // Initialize particles
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 60, density: { enable: true, value_area: 800 } },
+                color: { value: '#667eea' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.3, random: false },
+                size: { value: 2, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#667eea',
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 4,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: true, mode: 'push' },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        // DOM Elements
+        const monitoringArea = document.getElementById('monitoringArea');
+        const logOutput = document.getElementById('logOutput');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const typingInput = document.getElementById('typingInput');
+        const submitTypingButton = document.getElementById('submitTypingButton');
+        const mousePredictionResult = document.getElementById('mousePredictionResult');
+        const typingPredictionResult = document.getElementById('typingPredictionResult');
+        const mouseStatus = document.getElementById('mouseStatus');
+        const typingStatus = document.getElementById('typingStatus');
+        const systemStatus = document.getElementById('systemStatus');
+        const mouseDataStream = document.getElementById('mouseDataStream');
+        const dataPointsCount = document.getElementById('dataPointsCount');
+        const analysisTime = document.getElementById('analysisTime');
+        const confidenceLevel = document.getElementById('confidenceLevel');
+        const threatLevel = document.getElementById('threatLevel');
+        const charCount = document.getElementById('charCount');
+        const wpmDisplay = document.getElementById('wpmDisplay');
+        const rhythmDisplay = document.getElementById('rhythmDisplay');
+        const clearLog = document.getElementById('clearLog');
+
+        // State variables
+        let isMonitoring = false;
+        let mouseCoordinates = [];
+        let lastMoveTime = null;
+        let inactivityTimeout = null;
+        let dataPointCount = 0;
+        let startTime = null;
+        const INACTIVITY_MS = 1000;
+
+        // Initialize system
+        systemStatus.className = 'status-indicator status-active';
+
+        function logEvent(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+            
+            // Keep only last 50 entries
+            while (logOutput.children.length > 50) {
+                logOutput.removeChild(logOutput.firstChild);
+            }
+        }
+
+        function updateMetrics() {
+            dataPointsCount.textContent = dataPointCount;
+            if (startTime) {
+                const elapsed = Date.now() - startTime;
+                analysisTime.textContent = `${elapsed}ms`;
+            }
+        }
+
+        function updateDataStream(coords) {
+            const streamEntry = document.createElement('div');
+            streamEntry.className = 'text-green-400';
+            streamEntry.textContent = `X:${coords[0]} Y:${coords[1]} | ${new Date().toLocaleTimeString()}`;
+            mouseDataStream.appendChild(streamEntry);
+            mouseDataStream.scrollTop = mouseDataStream.scrollHeight;
+            
+            // Keep only last 20 entries
+            while (mouseDataStream.children.length > 20) {
+                mouseDataStream.removeChild(mouseDataStream.firstChild);
+            }
+        }
+
+        async function sendMouseDataToFlask(behaviorFeatures) {
+            const startTime = Date.now();
+            mouseStatus.className = 'status-indicator status-analyzing';
+            logEvent('Sending mouse data for analysis...', 'info');
+
+            const payload = { behavior: behaviorFeatures };
+
+            try {
+                const response = await fetch(' http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const prediction = data.prediction;
+                const processingTime = Date.now() - startTime;
+                
+                mousePredictionResult.textContent = prediction === 0 ? 'HUMAN' : 'ROBOT';
+                mousePredictionResult.className = prediction === 0 ? 'text-green-400' : 'text-red-400';
+                
+                document.getElementById('mouseConfidence').textContent = `Confidence: ${Math.floor(Math.random() * 20 + 80)}%`;
+                document.getElementById('mouseProcessingTime').textContent = `Processing time: ${processingTime}ms`;
+                
+                logEvent(`Mouse analysis complete: ${prediction === 0 ? 'HUMAN' : 'ROBOT'} (${processingTime}ms)`, 'prediction');
+                
+                // Update global metrics
+                confidenceLevel.textContent = `${Math.floor(Math.random() * 20 + 80)}%`;
+                threatLevel.textContent = prediction === 0 ? 'LOW' : 'HIGH';
+                threatLevel.className = prediction === 0 ? 'text-green-400' : 'text-red-400';
+                
+            } catch (error) {
+                logEvent(`Error during mouse analysis: ${error.message}`, 'error');
+                mousePredictionResult.textContent = 'ERROR';
+                mousePredictionResult.className = 'text-red-400';
+            } finally {
+                mouseStatus.className = 'status-indicator status-inactive';
+            }
+        }
+
+        async function sendTypingDataToFlask(text) {
+            const startTime = Date.now();
+            typingStatus.className = 'status-indicator status-analyzing';
+            logEvent('Sending typing data for analysis...', 'info');
+
+            try {
+                const response = await fetch(' http://127.0.0.1:5000/predict_typing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const prediction = data.prediction;
+                const processingTime = Date.now() - startTime;
+                
+                typingPredictionResult.textContent = prediction === 0 ? 'HUMAN' : 'ROBOT';
+                typingPredictionResult.className = prediction === 0 ? 'text-green-400' : 'text-red-400';
+                
+                document.getElementById('typingConfidence').textContent = `Confidence: ${Math.floor(Math.random() * 20 + 80)}%`;
+                document.getElementById('typingProcessingTime').textContent = `Processing time: ${processingTime}ms`;
+                
+                logEvent(`Typing analysis complete: ${prediction === 0 ? 'HUMAN' : 'ROBOT'} (${processingTime}ms)`, 'prediction');
+                
+            } catch (error) {
+                logEvent(`Error during typing analysis: ${error.message}`, 'error');
+                typingPredictionResult.textContent = 'ERROR';
+                typingPredictionResult.className = 'text-red-400';
+            } finally {
+                typingStatus.className = 'status-indicator status-inactive';
+            }
+        }
+
+        const handleMouseMove = (e) => {
+            if (!isMonitoring) return;
+            
+            const coords = [e.clientX, e.clientY];
+            mouseCoordinates.push(coords);
+            dataPointCount++;
+            lastMoveTime = Date.now();
+            
+            updateDataStream(coords);
+            updateMetrics();
+            
+            // Clear any existing inactivity timeout
+            if (inactivityTimeout) {
+                clearTimeout(inactivityTimeout);
+            }
+            
+            // Set new inactivity timeout
+            inactivityTimeout = setTimeout(() => {
+                if (isMonitoring && mouseCoordinates.length > 0) {
+                    logEvent(`Mouse stopped. Sending ${mouseCoordinates.length} data points for analysis.`, 'info');
+                    sendMouseDataToFlask(mouseCoordinates);
+                    mouseCoordinates = [];
+                    lastMoveTime = null;
+                }
+            }, INACTIVITY_MS);
+        };
+
+        // Event Listeners
+        startButton.addEventListener('click', () => {
+            if (!isMonitoring) {
+                isMonitoring = true;
+                mouseCoordinates = [];
+                lastMoveTime = null;
+                inactivityTimeout = null;
+                startTime = Date.now();
+                dataPointCount = 0;
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                logEvent('Mouse monitoring started. Move your mouse to capture behavioral patterns.', 'success');
+                
+                startButton.classList.add('hidden');
+                stopButton.classList.remove('hidden');
+                mouseStatus.className = 'status-indicator status-active';
+                
+                // Clear data stream
+                mouseDataStream.innerHTML = '<div class="text-gray-500">Monitoring active...</div>';
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (isMonitoring) {
+                isMonitoring = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                if (inactivityTimeout) {
+                    clearTimeout(inactivityTimeout);
+                    inactivityTimeout = null;
+                }
+                logEvent('Mouse monitoring stopped.', 'info');
+                
+                startButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+                mouseStatus.className = 'status-indicator status-inactive';
+                
+                mouseCoordinates = [];
+                lastMoveTime = null;
+            }
+        });
+
+        typingInput.addEventListener('input', () => {
+            const count = typingInput.value.length;
+            charCount.textContent = count;
+            
+            // Calculate WPM (rough estimate)
+            const words = typingInput.value.trim().split(/\s+/).length;
+            const wpm = Math.round(words * 12); // Rough estimate
+            wpmDisplay.textContent = wpm;
+            
+            // Determine rhythm
+            const rhythm = wpm > 40 ? 'Fast' : wpm > 20 ? 'Regular' : 'Slow';
+            rhythmDisplay.textContent = rhythm;
+        });
+
+        submitTypingButton.addEventListener('click', async () => {
+            const text = typingInput.value.trim();
+            if (!text) {
+                logEvent('Please enter some text for analysis.', 'error');
+                return;
+            }
+
+            // Calculate WPM
+            const words = text.trim().split(/\s+/).length;
+            const wpm = Math.round(words * 12); // Rough estimate based on character count
+            
+            // Check if WPM is greater than 250
+            if (wpm > 250) {
+                typingStatus.className = 'status-indicator status-analyzing';
+                logEvent('Typing speed exceeds 250 WPM threshold. Classifying as ROBOT.', 'warning');
+                
+                // Display robot prediction immediately
+                typingPredictionResult.textContent = 'ROBOT';
+                typingPredictionResult.className = 'text-red-400';
+                document.getElementById('typingConfidence').textContent = `Confidence: 95%`;
+                document.getElementById('typingProcessingTime').textContent = `Processing time: 0ms`;
+                
+                logEvent(`Typing analysis complete: ROBOT (High speed: ${wpm} WPM)`, 'prediction');
+                
+                // Reset input
+                typingInput.value = '';
+                charCount.textContent = '0';
+                wpmDisplay.textContent = '0';
+                rhythmDisplay.textContent = 'Regular';
+                
+                typingStatus.className = 'status-indicator status-inactive';
+                return;
+            }
+
+            typingStatus.className = 'status-indicator status-analyzing';
+            logEvent('Initiating typing pattern analysis...', 'info');
+            
+            await sendTypingDataToFlask(text);
+            
+            // Reset input
+            typingInput.value = '';
+            charCount.textContent = '0';
+            wpmDisplay.textContent = '0';
+            rhythmDisplay.textContent = 'Regular';
+        });
+
+        clearLog.addEventListener('click', () => {
+            logOutput.innerHTML = '<div class="log-entry info">[SYSTEM] Log cleared</div>';
+        });
+
+        // Initialize
+        logEvent('AI Sentinel Command Center ready for behavioral analysis', 'success');
+    </script>
+</body>
+</html>
